@@ -5,7 +5,7 @@ from string import punctuation
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
-#nltk.download('stopwords')
+nltk.download('stopwords')
 stopwords = stopwords.words("english")
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split

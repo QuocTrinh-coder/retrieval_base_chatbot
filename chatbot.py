@@ -8,10 +8,10 @@ from nltk.corpus import stopwords
 stopwords = stopwords.words("english")
 
 import pickle 
-SVCModel = pickle.load(open("../chatbot_test/SVCModel.pkl", "rb"))
-textVect = pickle.load(open("../chatbot_test/textvec.pkl", "rb"))
-tagEnc =  pickle.load(open("../chatbot_test/tagEnc.pkl", "rb"))
-responses = json.load(open("../chatbot_test/lookup.json", "r"))
+SVCModel = pickle.load(open("../retrieval_base_chatbot/SVCModel.pkl", "rb"))
+textVect = pickle.load(open("../retrieval_base_chatbot/textvec.pkl", "rb"))
+tagEnc =  pickle.load(open("../retrieval_base_chatbot/tagEnc.pkl", "rb"))
+responses = json.load(open("../retrieval_base_chatbot/lookup.json", "r"))
 
 def pre_process(text: str):
     text = " ".join([stemmer.stem(word.lower()) for word in text.split() if word.lower() not in [stopwords, punctuation]])
@@ -28,7 +28,7 @@ def generate_response(tag:str):
     return(answer)
 
 # Assuming you have user input stored in a variable called 'user_input'
-user_input = "What is first degree burn?"
+user_input = "burn help"
 
 # Preprocess the user input
 processed_input = pre_process(user_input)
