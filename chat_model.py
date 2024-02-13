@@ -12,6 +12,11 @@ from keras.layers import Dense, Activation, Dropout
 from keras.optimizers import SGD
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold
+
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 
 class ChatModel:
@@ -31,7 +36,10 @@ class ChatModel:
 
         # Evaluate the model on the test data
         self.evaluate_model(self._test_x, self._test_y)
-    
+        
+        # confusion matrix, uncomment to see the matrix
+        
+        #self.print_confusion_matrix(self._test_x, self._test_y)
     # tokenizing method
     def tokenizing(self,url):
         words=[]
@@ -176,11 +184,62 @@ class ChatModel:
         total_samples = len(test_y)
 
         accuracy = correct_predictions / total_samples
-        print(correct_predictions)
-        print(total_samples)
-        print("Test Accuracy:", accuracy)
+        
+        # Calculate mean squared error (MSE)
+        mse = np.mean((predicted_classes - true_classes) ** 2)
+        
+        return mse, accuracy
+    def k_fold_cross_validation(self, k=10):
+        # Split the data into k folds
+        kf = KFold(n_splits=k, shuffle=True)
 
-        return accuracy
+        # Initialize lists to store MSE and accuracy scores for each fold
+        mse_scores = []
+        accuracy_scores = []
+
+        for fold, (train_index, test_index) in enumerate(kf.split(self._train_x)):
+            print(f"Fold {fold + 1}/{k}:")
+            train_x_cv, test_x_cv = np.array(self._train_x)[train_index], np.array(self._train_x)[test_index]
+            train_y_cv, test_y_cv = np.array(self._train_y)[train_index], np.array(self._train_y)[test_index]
+
+            # Train the model
+            self._model = self.training(train_x_cv, train_y_cv)
+
+            # Evaluate the model
+            mse, accuracy = self.evaluate_model(test_x_cv, test_y_cv)
+            mse_scores.append(mse)
+            accuracy_scores.append(accuracy)
+
+            # Print MSE and accuracy scores for the current fold
+            print(f"MSE: {mse}, Accuracy: {accuracy}")
+
+        # Calculate and print average MSE and accuracy scores
+        avg_mse = np.mean(mse_scores)
+        avg_accuracy = np.mean(accuracy_scores)
+        print(f"\nAverage MSE: {avg_mse}, Average Accuracy: {avg_accuracy}")
+
+        return avg_mse, avg_accuracy
+
+    def print_confusion_matrix(self, test_x, test_y):
+        # Evaluate the model on the test data
+        predictions = self._model.predict(np.array(test_x))
+        predicted_classes = np.argmax(predictions, axis=1)
+        true_classes = np.argmax(test_y, axis=1)
+
+        # Calculate confusion matrix
+        cm = confusion_matrix(true_classes, predicted_classes)
+
+        # Print confusion matrix
+        print("Confusion Matrix:")
+        print(cm)
+
+        # Plot confusion matrix
+        plt.figure(figsize=(10, 7))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+        plt.xlabel('Predicted labels')
+        plt.ylabel('True labels')
+        plt.title('Confusion Matrix')
+        plt.show()
 
 # # Usage
 # chat_model = ChatModel()
@@ -193,7 +252,8 @@ class ChatModel:
 # test_accuracy = chat_model.evaluate_model(test_x, test_y)
 # print("Test Accuracy:", test_accuracy)
 
-# Assuming you have already created an instance of ChatModel and split the data
-chat_model = ChatModel()
-
-# model accuracy is 71% with on the 20% test data questions
+# # Assuming you have already created an instance of ChatModel and split the data
+# ex = ChatModel()
+# avg_mse, avg_accuracy = ex.k_fold_cross_validation(k=5)
+# print("Average MSE:", avg_mse)
+# print("Average Accuracy:", avg_accuracy)
